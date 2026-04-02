@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — TokoKu</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config={theme:{extend:{fontFamily:{sans:['DM Sans','system-ui','sans-serif']},colors:{ink:'#111827',muted:'#6b7280',faint:'#9ca3af',line:'#e5e7eb',pale:'#f3f4f6',ok:'#059669',no:'#dc2626',warn:'#d97706'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade{animation:in .3s ease both}
+.card-body{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 20px}
+.card-body.open{max-height:500px;padding:0 20px 20px}
+#toast{transform:translateY(80px);transition:transform .25s ease}
+#toast.on{transform:translateY(0)}
+</style>
+</head>
+<body class="bg-pale text-ink font-sans antialiased min-h-screen">
+
+<script>
+const URL='https://script.google.com/macros/s/AKfycbzl7y3umo8ZOWMa6-vusamSwJ9-2l_rmvZ4gwU8pMpx6t2I9X7DYYylrKW_PVHGDvV3QA/exec';
+</script>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center px-5">
+  <div class="w-full max-w-xs text-center">
+    <h1 class="text-lg font-bold mb-1">Admin Panel</h1>
+    <p class="text-xs text-muted mb-8">TokoKu</p>
+    <input id="passIn" type="password" placeholder="Password" class="w-full p-3 border border-line rounded-lg text-sm text-center focus:outline-none focus:border-ink transition" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()" id="btnLogin" class="w-full mt-3 bg-ink text-white py-3 rounded-lg text-sm font-semibold hover:bg-gray-800 transition">Masuk</button>
+    <p id="loginErr" class="text-xs text-no mt-3 hidden"></p>
+    <a href="index.html" class="inline-block mt-6 text-xs text-faint hover:text-muted transition">Kembali ke toko</a>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashScreen" class="hidden">
+  <nav class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-line">
+    <div class="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3"><span class="text-sm font-bold">Admin</span><span class="text-[10px] text-faint bg-pale px-2 py-0.5 rounded">TokoKu</span></div>
+      <div class="flex items-center gap-3"><button onclick="loadDash()" class="text-xs text-muted hover:text-ink transition">Refresh</button><a href="index.html" class="text-xs text-faint hover:text-muted transition">Toko</a></div>
+    </div>
+  </nav>
+  <div class="max-w-3xl mx-auto px-5 py-6">
+    <div class="grid grid-cols-3 gap-3 mb-8">
+      <div class="bg-white rounded-lg p-4 border border-line text-center"><p class="text-2xl font-bold" id="sAll">0</p><p class="text-[10px] text-faint uppercase tracking-widest mt-1">Total</p></div>
+      <div class="bg-white rounded-lg p-4 border border-line text-center"><p class="text-2xl font-bold text-warn" id="sPend">0</p><p class="text-[10px] text-warn uppercase tracking-widest mt-1">Pending</p></div>
+      <div class="bg-white rounded-lg p-4 border border-line text-center"><p class="text-2xl font-bold text-ok" id="sSent">0</p><p class="text-[10px] text-ok uppercase tracking-widest mt-1">Terkirim</p></div>
+    </div>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-bold">Pesanan</h2>
+      <div class="flex gap-1" id="tabBar">
+        <button onclick="setTab('all')" class="tab-btn text-xs px-3 py-1.5 rounded-md transition" data-t="all">Semua</button>
+        <button onclick="setTab('Pending')" class="tab-btn text-xs px-3 py-1.5 rounded-md transition" data-t="Pending">Pending</button>
+        <button onclick="setTab('Sent')" class="tab-btn text-xs px-3 py-1.5 rounded-md transition" data-t="Sent">Terkirim</button>
+        <button onclick="setTab('Rejected')" class="tab-btn text-xs px-3 py-1.5 rounded-md transition" data-t="Rejected">Ditolak</button>
+      </div>
+    </div>
+    <div id="loadSpin" class="text-center py-16 text-faint text-xs">Memuat...</div>
+    <div id="orderList" class="space-y-2"></div>
+    <div id="noOrders" class="hidden text-center py-16 text-faint text-xs">Tidak ada pesanan.</div>
+  </div>
+</div>
+
+<!-- MODAL KONFIRMASI -->
+<div id="mConfirm" class="fixed inset-0 z-50 flex items-center justify-center p-5" style="display:none">
+  <div class="absolute inset-0 bg-black/30" onclick="closeM('mConfirm')"></div>
+  <div class="relative bg-white w-full max-w-md rounded-xl p-6 z-10 fade max-h-[85vh] overflow-y-auto">
+    <button onclick="closeM('mConfirm')" class="absolute top-4 right-4 text-faint hover:text-ink"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    <h3 class="font-bold mb-1">Konfirmasi & Kirim Link</h3>
+    <p class="text-xs text-muted mb-4">Link produk digital akan dikirim ke email customer.</p>
+    <div id="cDetail" class="bg-pale rounded-lg p-4 border border-line text-sm space-y-1.5 mb-4"></div>
+    <div id="cLinks" class="mb-4"></div>
+    <div id="cWarn" class="hidden bg-amber-50 border border-amber-200 text-amber-700 text-xs p-3 rounded-lg mb-4">Beberapa produk tidak memiliki link digital.</div>
+    <div class="flex gap-2">
+      <button onclick="closeM('mConfirm')" class="flex-1 py-2.5 rounded-lg border border-line text-sm font-medium hover:bg-pale transition">Batal</button>
+      <button onclick="execConfirm()" id="btnConf" class="flex-1 py-2.5 rounded-lg bg-ok text-white text-sm font-semibold hover:bg-emerald-700 transition">Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TOLAK -->
+<div id="mReject" class="fixed inset-0 z-50 flex items-center justify-center p-5" style="display:none">
+  <div class="absolute inset-0 bg-black/30" onclick="closeM('mReject')"></div>
+  <div class="relative bg-white w-full max-w-sm rounded-xl p-6 z-10 fade">
+    <h3 class="font-bold text-no mb-1">Tolak Pesanan</h3>
+    <p class="text-xs text-muted mb-4">Customer akan menerima email pemberitahuan.</p>
+    <textarea id="rReason" rows="3" class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-no transition" placeholder="Alasan penolakan..."></textarea>
+    <div class="flex gap-2 mt-4">
+      <button onclick="closeM('mReject')" class="flex-1 py-2.5 rounded-lg border border-line text-sm font-medium hover:bg-pale transition">Batal</button>
+      <button onclick="execReject()" class="flex-1 py-2.5 rounded-lg bg-no text-white text-sm font-semibold hover:bg-red-700 transition">Tolak</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-5 py-2.5 rounded-lg z-50 whitespace-nowrap"><span id="toastMsg"></span></div>
+
+<script>
+var products=[],orders=[],curTab='all',pendingId=null,WA='';
+var Rp=function(n){return 'Rp '+Number(n||0).toLocaleString('id-ID')};
+var waIcon='<svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
+
+// === LOGIN ===
+async function doLogin(){
+  var pass=document.getElementById('passIn').value;
+  var btn=document.getElementById('btnLogin');
+  var err=document.getElementById('loginErr');
+  if(!pass){err.textContent='Masukkan password';err.classList.remove('hidden');return}
+  btn.disabled=true;btn.textContent='Memeriksa...';err.classList.add('hidden');
+  try{
+    var r=await fetch(URL+'?action=check_auth&password='+encodeURIComponent(pass)+'&_t='+Date.now());
+    var j=await r.json();
+    if(j.status==='success'&&j.ok===true){
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('dashScreen').classList.remove('hidden');
+      initDash();
+    }else{err.textContent='Password salah';err.classList.remove('hidden')}
+  }catch(e){err.textContent='Gagal terhubung ke server';err.classList.remove('hidden')}
+  btn.disabled=false;btn.textContent='Masuk';
+}
+
+async function initDash(){
+  try{
+    var r1=await fetch(URL+'?action=get_settings&_t='+Date.now());
+    var j1=await r1.json();
+    if(j1.status==='success'&&j1.data)WA=j1.data.wa_number||'';
+  }catch(e){}
+
+  try{
+    var r2=await fetch(URL+'?action=getProducts&_t='+Date.now());
+    var j2=await r2.json();
+    if(j2.status==='success')products=j2.data||[];
+  }catch(e){}
+
+  try{
+    var r3=await fetch(URL+'?action=getOrders&_t='+Date.now());
+    var j3=await r3.json();
+    if(j3.status==='success')orders=j3.data||[];
+  }catch(e){}
+
+  renderDash();
+}
+
+function setTab(t){curTab=t;renderTabBtns();renderOrders()}
+function renderTabBtns(){document.querySelectorAll('.tab-btn').forEach(function(b){var a=b.dataset.t===curTab;b.className='tab-btn text-xs px-3 py-1.5 rounded-md transition '+(a?'bg-ink text-white font-semibold':'text-muted hover:text-ink hover:bg-white')})}
+
+function renderDash(){
+  var filtered=curTab==='all'?orders:orders.filter(function(o){return(o.Status||'')===curTab});
+  document.getElementById('sAll').textContent=orders.length;
+  document.getElementById('sPend').textContent=orders.filter(function(o){return(o.Status||'')==='Pending'}).length;
+  document.getElementById('sSent').textContent=orders.filter(function(o){return o.Status==='Sent'||o.Status==='Paid'}).length;
+  renderTabBtns();
+  document.getElementById('loadSpin').style.display='none';
+  var list=document.getElementById('orderList'),noEl=document.getElementById('noOrders');
+  if(!filtered.length){list.innerHTML='';noEl.classList.remove('hidden');return}
+  noEl.classList.add('hidden');
+
+  list.innerHTML=filtered.map(function(o,i){
+    var s=o.Status||'Pending';
+    var sc=s==='Pending'?'text-warn bg-amber-50':s==='Sent'||s==='Paid'?'text-ok bg-emerald-50':s==='Rejected'?'text-no bg-red-50':'text-muted bg-pale';
+    var sl=s==='Pending'?'Pending':s==='Sent'||s==='Paid'?'Terkirim':s==='Rejected'?'Ditolak':s;
+    var ts=o.Timestamp?new Date(o.Timestamp).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'-';
+    var phone=String(o.CustomerPhone||'').replace(/[^0-9]/g,'');
+    var hasPhone=phone.length>=8;
+    var act='';
+
+    if(s==='Pending'){
+      act='<button onclick="ingatkan(\''+o.OrderID+'\')" class="py-2 px-3 rounded-lg border border-line text-xs font-medium hover:bg-pale transition flex items-center gap-1.5" '+(hasPhone?'':'disabled style="opacity:.4;cursor:not-allowed" title="Nomor WA tidak valid"')+'>'+waIcon+' Ingatkan</button>';
+      act+='<button onclick="openConfirm(\''+o.OrderID+'\')" class="flex-1 py-2 rounded-lg bg-ok text-white text-xs font-semibold hover:bg-emerald-700 transition">Konfirmasi & Kirim</button>';
+      act+='<button onclick="openReject(\''+o.OrderID+'\')" class="py-2 px-3 rounded-lg border border-red-200 text-no text-xs font-semibold hover:bg-red-50 transition">Tolak</button>';
+    }else if(s==='Sent'||s==='Paid'){
+      act='<button onclick="ingatkan(\''+o.OrderID+'\')" class="py-2 px-3 rounded-lg border border-line text-xs font-medium hover:bg-pale transition flex items-center gap-1.5" '+(hasPhone?'':'disabled style="opacity:.4;cursor:not-allowed"')+'>'+waIcon+' Hubungi</button>';
+      act+='<button onclick="resend(\''+o.OrderID+'\')" class="flex-1 py-2 rounded-lg border border-line text-xs font-medium hover:bg-pale transition">Kirim Ulang Link</button>';
+    }else if(s==='Rejected'){
+      act='<button onclick="ingatkan(\''+o.OrderID+'\')" class="py-2 px-3 rounded-lg border border-line text-xs font-medium hover:bg-pale transition flex items-center gap-1.5" '+(hasPhone?'':'disabled style="opacity:.4;cursor:not-allowed"')+'>'+waIcon+' Hubungi</button>';
+      act+='<span class="text-xs text-faint italic flex-1 text-center py-2">Ditolak</span>';
+    }
+
+    return '<div class="bg-white rounded-lg border border-line overflow-hidden fade" style="animation-delay:'+i*30+'ms"><div class="px-5 py-3.5 flex items-center gap-3 cursor-pointer hover:bg-pale/50 transition" onclick="toggleCard(this)"><span class="font-mono font-bold text-xs flex-shrink-0">'+(o.OrderID||'-')+'</span><span class="text-xs text-muted truncate flex-1">'+(o.CustomerName||o.CostumerName||'-')+'</span><span class="text-xs font-medium px-2 py-0.5 rounded '+sc+' flex-shrink-0">'+sl+'</span><svg class="w-4 h-4 text-faint transition-transform chevron flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg></div><div class="card-body"><div class="border-t border-line pt-4 space-y-2 text-xs text-muted"><div class="grid grid-cols-2 gap-3"><div><span class="text-faint">Email</span><p class="text-ink font-medium mt-0.5 break-all">'+(o.CustomerEmail||o.CostumerEmail||'-')+'</p></div><div><span class="text-faint">WhatsApp</span><p class="text-ink font-medium mt-0.5">'+(hasPhone?'+':'')+(phone||'-')+'</p></div><div><span class="text-faint">Pembayaran</span><p class="text-ink font-medium mt-0.5">'+(o.PaymentMethod||'-')+'</p></div><div><span class="text-faint">Waktu</span><p class="text-ink font-medium mt-0.5">'+ts+'</p></div></div><div><span class="text-faint">Produk</span><p class="text-ink font-medium mt-0.5">'+(o.Items||'-')+'</p></div><p class="text-base font-bold text-ink pt-1">'+Rp(o.Total)+'</p></div><div class="flex gap-2 mt-4">'+act+'</div></div></div>';
+  }).join('');
+}
+
+function toggleCard(el){var body=el.nextElementSibling,chev=el.querySelector('.chevron');body.classList.toggle('open');chev.style.transform=body.classList.contains('open')?'rotate(180deg)':''}
+
+// === INGATKAN VIA WA ===
+function ingatkan(oid){
+  var o=orders.find(function(x){return x.OrderID===oid});
+  if(!o){toast('Data tidak ditemukan');return}
+  var phone=String(o.CustomerPhone||'').replace(/[^0-9]/g,'');
+  if(phone.length<8){toast('Nomor WA tidak valid');return}
+  var name=o.CustomerName||o.CostumerName||'Pelanggan';
+  var items=o.Items||'-';
+  var total=Rp(o.Total);
+  var status=o.Status||'Pending';
+  var msg='';
+  if(status==='Pending'){
+    msg='Hai '+name+', ini pengingat pesanan Anda:\n\nKode: '+oid+'\nProduk: '+items+'\nTotal: '+total+'\n\nPembayaran belum kami terima. Silakan kirim bukti transfer agar pesanan segera diproses.\n\nTerima kasih!';
+  }else{
+    msg='Hai '+name+', terkait pesanan Anda:\n\nKode: '+oid+'\nProduk: '+items+'\nTotal: '+total+'\nStatus: '+status+'\n\nJika ada pertanyaan, silakan balas pesan ini.';
+  }
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function getLinks(items){
+  if(!items||items==='-')return[];
+  var parts=items.split(','),names=[];
+  parts.forEach(function(p){var c=p.replace(/\s*\(\d+\)\s*$/,'').trim();if(c)names.push(c.toLowerCase())});
+  var links=[];
+  products.forEach(function(p){
+    if(p.digital_link&&p.name){
+      var pn=String(p.name).trim().toLowerCase();
+      for(var i=0;i<names.length;i++){if(names[i]===pn){links.push({name:String(p.name).trim(),link:p.digital_link});break}}
+    }
+  });
+  return links;
+}
+
+function openConfirm(oid){
+  pendingId=oid;var o=orders.find(function(x){return x.OrderID===oid});if(!o)return;
+  document.getElementById('cDetail').innerHTML='<div class="flex justify-between"><span class="text-faint">Kode</span><span class="font-mono font-bold">'+oid+'</span></div><div class="flex justify-between"><span class="text-faint">Nama</span><span class="font-medium">'+(o.CustomerName||o.CostumerName||'-')+'</span></div><div class="flex justify-between"><span class="text-faint">Email</span><span class="font-medium text-right break-all ml-3">'+(o.CustomerEmail||o.CostumerEmail||'-')+'</span></div><div class="flex justify-between"><span class="text-faint">Produk</span><span class="font-medium text-right max-w-[55%]">'+(o.Items||'-')+'</span></div>';
+  var lk=getLinks(o.Items);
+  var ld=document.getElementById('cLinks'),wd=document.getElementById('cWarn');
+  if(lk.length){ld.innerHTML='<p class="text-[10px] text-faint uppercase tracking-widest font-medium mb-2">Link yang dikirim</p>'+lk.map(function(l){return '<div class="flex items-center gap-2 text-xs mb-1.5"><span class="w-1 h-1 bg-ok rounded-full flex-shrink-0"></span><span class="text-ink font-medium truncate">'+l.name+'</span></div>'}).join('');wd.classList.add('hidden')}
+  else{ld.innerHTML='';wd.classList.remove('hidden')}
+  document.getElementById('mConfirm').style.display='';
+}
+
+async function execConfirm(){
+  if(!pendingId)return;var b=document.getElementById('btnConf');b.disabled=true;b.textContent='Mengirim...';
+  try{
+    await fetch(URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_status',order_id:pendingId,new_status:'Sent',send_email:true})});
+    toast('Terkonfirmasi & link terkirim');closeM('mConfirm');initDash();
+  }catch(e){toast('Gagal mengirim')}
+  b.disabled=false;b.textContent='Konfirmasi';
+}
+
+async function resend(oid){
+  if(!confirm('Kirim ulang link ke email customer?'))return;
+  try{
+    await fetch(URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_status',order_id:oid,new_status:'Sent',send_email:true})});
+    toast('Link dikirim ulang');
+  }catch(e){toast('Gagal')}
+}
+
+function openReject(oid){pendingId=oid;document.getElementById('rReason').value='';document.getElementById('mReject').style.display=''}
+
+async function execReject(){
+  if(!pendingId)return;var reason=document.getElementById('rReason').value.trim()||'Pembayaran tidak terverifikasi';
+  try{
+    await fetch(URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reject_order',order_id:pendingId,reason:reason,send_email:true})});
+    toast('Pesanan ditolak');closeM('mReject');initDash();
+  }catch(e){toast('Gagal')}
+}
+
+function closeM(id){document.getElementById(id).style.display='';pendingId=null}
+function loadDash(){initDash()}
+function toast(m){var t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on')},2500)}
+document.getElementById('passIn').focus();
+</script>
+</body>
+</html>
