@@ -19,6 +19,15 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['DM Sans','system-ui','sans-se
 #toast{transform:translateY(80px);transition:transform .25s ease}
 #toast.on{transform:translateY(0)}
 .view{display:none}.view.active{display:block}
+.rich-h2{font-size:20px;font-weight:700;margin:0 0 12px;color:#111827}
+.rich-p{font-size:14px;color:#6b7280;line-height:1.75;margin:0 0 12px}
+.rich-ul,.rich-ol{list-style:none;padding-left:4px;margin:0 0 12px}
+.rich-li{font-size:14px;color:#6b7280;line-height:1.75;padding:3px 0;display:flex;align-items:flex-start;gap:10px}
+.rich-ul .rich-li::before{content:'\2022';color:#059669;font-weight:700;flex-shrink:0;margin-top:2px;font-size:16px}
+.rich-ol{counter-reset:rli}
+.rich-ol .rich-li::before{content:counter(rli) '.';counter-increment:rli;font-weight:600;color:#6b7280;flex-shrink:0}
+.rich-hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0}
+.rich-spacer{height:24px}
 </style>
 </head>
 <body class="bg-white text-ink font-sans antialiased">
@@ -32,11 +41,7 @@ var WA='';
   <div class="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
     <button onclick="go('store')" class="text-sm font-bold tracking-tight">TokoKu</button>
     <div class="flex items-center gap-4">
-      <button onclick="go('track')" class="text-xs text-muted hover:text-ink transition">Lacak</button>
-      <button onclick="go('cart')" class="relative" aria-label="Keranjang">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"/></svg>
-        <span id="badge" class="absolute -top-1.5 -right-1.5 bg-ink text-white text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center" style="display:none">0</span>
-      </button>
+      <button onclick="go('track')" class="text-xs text-muted hover:text-ink transition">Lacak Pesanan</button>
     </div>
   </div>
 </nav>
@@ -46,13 +51,13 @@ var WA='';
   <!-- STORE -->
   <div id="v-store" class="view active">
     <div id="setupErr" class="hidden bg-red-50 border border-red-200 text-red-600 text-sm p-4 rounded-lg mt-6">
-      <b>Gagal memuat data.</b> Pastikan SCRIPT_URL sudah benar dan script sudah di-deploy sebagai Web App dengan akses "Anyone".
+      <b>Gagal memuat data.</b> Pastikan script sudah di-deploy sebagai Web App dengan akses "Anyone".
     </div>
     <div class="pt-16 pb-10 text-center">
       <h1 class="text-3xl md:text-5xl font-bold tracking-tight leading-tight">Produk Digital</h1>
       <p class="mt-3 text-muted text-sm max-w-md mx-auto leading-relaxed">Template, ebook, dan file premium. Instan dikirim ke email setelah pembayaran dikonfirmasi.</p>
     </div>
-    <div id="filterBar" class="flex gap-4 justify-center pb-8 border-b border-line text-xs"></div>
+    <div id="filterBar" class="flex gap-4 justify-center pb-8 border-b border-line text-xs flex-wrap"></div>
     <div id="grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 py-10"></div>
     <div id="emptyStore" class="hidden text-center py-20 text-faint text-sm">Belum ada produk.</div>
     <footer class="py-10 border-t border-line text-center">
@@ -71,26 +76,9 @@ var WA='';
     <div id="detailSticky" class="fixed bottom-0 left-0 right-0 bg-white border-t border-line z-30" style="display:none">
       <div class="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between">
         <span id="detailPrice" class="text-lg font-bold"></span>
-        <button id="detailCartBtn" class="bg-ink text-white text-sm font-semibold px-6 h-10 rounded-lg hover:bg-gray-800 active:scale-95 transition">Tambah ke Keranjang</button>
+        <button id="detailBuyBtn" class="bg-ink text-white text-sm font-semibold px-6 h-10 rounded-lg hover:bg-gray-800 active:scale-95 transition">Pesan Sekarang</button>
       </div>
     </div>
-  </div>
-
-  <!-- CART -->
-  <div id="v-cart" class="view">
-    <button onclick="go('store')" class="inline-flex items-center gap-1.5 text-xs text-muted hover:text-ink mt-6 mb-6 transition">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg> Toko
-    </button>
-    <h2 class="text-xl font-bold mb-6">Keranjang</h2>
-    <div id="cartList" class="divide-y divide-line"></div>
-    <div id="cartNone" class="hidden py-20 text-center text-faint text-sm">Keranjang kosong.</div>
-    <div id="cartFoot" class="fixed bottom-0 left-0 right-0 bg-white border-t border-line z-30" style="display:none">
-      <div class="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between">
-        <div><p class="text-[10px] text-faint uppercase tracking-widest">Total</p><p id="cartTotal" class="text-lg font-bold"></p></div>
-        <button onclick="openCO()" class="bg-ink text-white text-sm font-semibold px-6 h-10 rounded-lg hover:bg-gray-800 transition">Checkout</button>
-      </div>
-    </div>
-    <div class="h-24"></div>
   </div>
 
   <!-- TRACK -->
@@ -115,9 +103,19 @@ var WA='';
     <h2 class="text-lg font-bold mb-1">Checkout</h2>
     <p class="text-xs text-muted mb-5">Link produk dikirim ke email setelah dikonfirmasi.</p>
     <form id="fCO" onsubmit="doOrder(event)" class="space-y-4">
-      <div><label class="text-xs text-muted block mb-1">Nama <span class="text-no">*</span></label><input name="name" required class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-ink transition"></div>
-      <div><label class="text-xs text-muted block mb-1">WhatsApp <span class="text-no">*</span></label><input name="phone" required class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-ink transition"></div>
-      <div><label class="text-xs text-muted block mb-1">Email <span class="text-no">*</span></label><input name="email" type="email" required class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-ink transition"><p class="text-[10px] text-faint mt-1">Link produk dikirim ke sini</p></div>
+      <div>
+        <label class="text-xs text-muted block mb-1">Nama <span class="text-no">*</span></label>
+        <input name="name" required class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-ink transition">
+      </div>
+      <div>
+        <label class="text-xs text-muted block mb-1">WhatsApp <span class="text-no">*</span></label>
+        <input name="phone" required class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-ink transition">
+      </div>
+      <div>
+        <label class="text-xs text-muted block mb-1">Email <span class="text-no">*</span></label>
+        <input name="email" type="email" required class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-ink transition">
+        <p class="text-[10px] text-faint mt-1">Link produk dikirim ke sini</p>
+      </div>
       <div>
         <label class="text-xs text-muted block mb-2">Pembayaran</label>
         <div class="grid grid-cols-2 gap-2">
@@ -141,7 +139,9 @@ var WA='';
 <div id="mOK" class="fixed inset-0 z-50 flex items-center justify-center p-5" style="display:none">
   <div class="absolute inset-0 bg-black/30"></div>
   <div class="relative bg-white w-full max-w-sm rounded-xl p-8 text-center fade z-10">
-    <div class="w-12 h-12 bg-ok rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></div>
+    <div class="w-12 h-12 bg-ok rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+    </div>
     <h3 class="font-bold text-lg mb-1">Pesanan Dibuat</h3>
     <p class="text-xs text-muted mb-4">Kirim bukti pembayaran via WhatsApp</p>
     <div class="border border-line border-dashed rounded-lg p-3 mb-5"><span id="okId" class="text-xl font-mono font-bold tracking-widest"></span></div>
@@ -153,25 +153,25 @@ var WA='';
 <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-5 py-2.5 rounded-lg z-50 whitespace-nowrap"><span id="toastMsg"></span></div>
 
 <script>
-var P = [];          // semua produk dari server
-var FP = [];         // produk yang tampil (setelah filter kategori)
-var cart = JSON.parse(localStorage.getItem('ck') || '[]');
-var curCat = 'Semua';
-var curProd = null;
+var P=[], FP=[], curCat='Semua', curProd=null;
 
 var Rp = function(n) { return 'Rp ' + Number(n || 0).toLocaleString('id-ID'); };
 
-// ==================== NAVIGASI ====================
+function escH(s) {
+  var d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+/* ==================== NAVIGASI ==================== */
 function go(v) {
   document.querySelectorAll('.view').forEach(function(e) { e.classList.remove('active'); });
   document.getElementById('v-' + v).classList.add('active');
   document.getElementById('detailSticky').style.display = v === 'detail' ? '' : 'none';
-  if (v === 'cart') renderCart();
-  if (v !== 'cart') document.getElementById('cartFoot').style.display = 'none';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ==================== INIT ====================
+/* ==================== INIT ==================== */
 async function init() {
   var ok = false;
   try {
@@ -181,7 +181,7 @@ async function init() {
       WA = j1.data.wa_number || '';
       ok = true;
     }
-  } catch (e) { console.warn('Settings error:', e); }
+  } catch (e) {}
 
   if (!ok) {
     document.getElementById('setupErr').classList.remove('hidden');
@@ -198,16 +198,16 @@ async function init() {
       return;
     }
     if (j2.message) {
-      document.getElementById('setupErr').innerHTML = '<b>Error server:</b> ' + j2.message;
+      document.getElementById('setupErr').innerHTML = '<b>Error server:</b> ' + escH(j2.message);
       document.getElementById('setupErr').classList.remove('hidden');
       return;
     }
-  } catch (e) { console.warn('Products error:', e); }
+  } catch (e) {}
 
   document.getElementById('setupErr').classList.remove('hidden');
 }
 
-// ==================== FILTER KATEGORI ====================
+/* ==================== FILTER KATEGORI ==================== */
 function buildFilter() {
   var cats = ['Semua'];
   var seen = {};
@@ -217,19 +217,14 @@ function buildFilter() {
   });
   document.getElementById('filterBar').innerHTML = cats.map(function(x) {
     return '<button onclick="setCat(\'' + x.replace(/'/g, "\\'") + '\')" class="transition ' + (x === curCat ? 'text-ink font-semibold' : 'text-faint hover:text-muted') + '">' + x + '</button>';
-  }).join('<span class="text-line">·</span>');
+  }).join('<span class="text-line">|</span>');
 }
 
 function setCat(c) { curCat = c; buildFilter(); renderGrid(); }
 
-// ==================== GRID PRODUK ====================
+/* ==================== GRID PRODUK ==================== */
 function renderGrid() {
-  // Simpan array yang sudah difilter ke FP
-  if (curCat === 'Semua') {
-    FP = P.slice();
-  } else {
-    FP = P.filter(function(p) { return (p.category || 'Umum') === curCat; });
-  }
+  FP = curCat === 'Semua' ? P.slice() : P.filter(function(p) { return (p.category || 'Umum') === curCat; });
 
   var g = document.getElementById('grid');
   var em = document.getElementById('emptyStore');
@@ -237,27 +232,87 @@ function renderGrid() {
   if (!FP.length) { g.innerHTML = ''; em.classList.remove('hidden'); return; }
   em.classList.add('hidden');
 
-  // Pakai index i sebagai parameter — tidak pakai p.id
   g.innerHTML = FP.map(function(p, i) {
     var img = (p.images && p.images[0]) || '';
     return '<div onclick="openDetail(' + i + ')" class="cursor-pointer group fade" style="animation-delay:' + (i * 40) + 'ms">'
       + '<div class="aspect-square rounded-lg overflow-hidden bg-pale mb-3">'
-      + (img ? '<img src="' + img + '" alt="' + escHtml(p.name) + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">' : '<div class="w-full h-full flex items-center justify-center text-faint text-xs">No image</div>')
+      + (img
+        ? '<img src="' + img + '" alt="' + escH(p.name) + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">'
+        : '<div class="w-full h-full flex items-center justify-center text-faint text-xs">No image</div>')
       + '</div>'
-      + '<h3 class="text-sm font-medium truncate">' + escHtml(p.name) + '</h3>'
+      + '<h3 class="text-sm font-medium truncate">' + escH(p.name) + '</h3>'
       + '<p class="text-sm font-bold mt-0.5">' + Rp(p.price) + '</p>'
       + '</div>';
   }).join('');
 }
 
-// Escape HTML untuk mencegah broken tag
-function escHtml(s) {
-  var d = document.createElement('div');
-  d.textContent = s || '';
-  return d.innerHTML;
+/* ==================== PARSE DESKRIPSI RICH BLOCKS ==================== */
+function parseDesc(raw) {
+  if (!raw || raw.trim() === '') return '<p class="text-sm text-muted">Tidak ada deskripsi.</p>';
+
+  /* Coba parse sebagai JSON (format baru dari block editor) */
+  try {
+    var blocks = JSON.parse(raw);
+    if (Array.isArray(blocks) && blocks.length > 0) {
+      var html = '';
+      blocks.forEach(function(b) {
+        switch (b.type) {
+          case 'h2':
+            html += '<h2 class="rich-h2">' + escH(b.content) + '</h2>';
+            break;
+          case 'p':
+            var txt = escH(b.content || '');
+            if (txt) html += '<p class="rich-p">' + txt.replace(/\n/g, '<br>') + '</p>';
+            break;
+          case 'ul':
+            if (b.items && b.items.length) {
+              html += '<ul class="rich-ul">' + b.items.map(function(it) {
+                return '<li class="rich-li">' + escH(it) + '</li>';
+              }).join('') + '</ul>';
+            }
+            break;
+          case 'ol':
+            if (b.items && b.items.length) {
+              html += '<ol class="rich-ol">' + b.items.map(function(it) {
+                return '<li class="rich-li">' + escH(it) + '</li>';
+              }).join('') + '</ol>';
+            }
+            break;
+          case 'divider':
+            html += '<hr class="rich-hr">';
+            break;
+          case 'spacer':
+            html += '<div class="rich-spacer"></div>';
+            break;
+        }
+      });
+      return html || '<p class="text-sm text-muted">Tidak ada deskripsi.</p>';
+    }
+  } catch (e) { /* bukan JSON, fallback ke format teks biasa */ }
+
+  /* Fallback: format teks biasa (baris baru & list manual) */
+  var lines = raw.split('\n').filter(function(l) { return l.trim(); });
+  var paras = [], lists = [];
+  lines.forEach(function(l) {
+    var t = l.trim();
+    if (/^[-•*]\s/.test(t)) lists.push(t.replace(/^[-•*]\s+/, ''));
+    else if (/^\d+[.)]\s/.test(t)) lists.push(t.replace(/^\d+[.)]\s+/, ''));
+    else paras.push(t);
+  });
+
+  var html = '';
+  if (paras.length) {
+    html += paras.map(function(t) { return '<p class="rich-p">' + escH(t) + '</p>'; }).join('');
+  }
+  if (lists.length) {
+    html += '<ul class="rich-ul">' + lists.map(function(t) {
+      return '<li class="rich-li"><svg class="w-4 h-4 text-ok mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>' + escH(t) + '</li>';
+    }).join('') + '</ul>';
+  }
+  return html || '<p class="text-sm text-muted">Tidak ada deskripsi.</p>';
 }
 
-// ==================== DETAIL PRODUK ====================
+/* ==================== DETAIL PRODUK ==================== */
 function openDetail(i) {
   var p = FP[i];
   if (!p) return;
@@ -269,14 +324,14 @@ function openDetail(i) {
 
   if (imgs.length || vid) {
     hero = '<div class="swipe w-full h-full">';
-    imgs.forEach(function(s) { hero += '<div><img src="' + s + '" class="w-full h-full object-cover" alt="' + escHtml(p.name) + '"></div>'; });
+    imgs.forEach(function(s) { hero += '<div><img src="' + s + '" class="w-full h-full object-cover" alt="' + escH(p.name) + '"></div>'; });
     if (vid) {
       var m = vid.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]{11})/);
       if (m && m[1]) hero += '<div class="bg-gray-900"><iframe class="w-full h-full" src="https://www.youtube.com/embed/' + m[1] + '" frameborder="0" allowfullscreen loading="lazy"></iframe></div>';
     }
     hero += '</div>';
     var dotCount = imgs.length + (vid ? 1 : 0);
-    if (dotCount > 1) hero += '<div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1 z-10">' + Array(dotCount).fill('<span class="w-1 h-1 bg-white/60 rounded-full"></span>').join('') + '</div>';
+    if (dotCount > 1) hero += '<div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">' + Array(dotCount).fill('<span class="w-1.5 h-1.5 bg-white/60 rounded-full"></span>').join('') + '</div>';
   } else {
     hero = '<div class="w-full h-full flex items-center justify-center text-faint text-sm">Tidak ada media</div>';
   }
@@ -284,40 +339,15 @@ function openDetail(i) {
   document.getElementById('detailHero').innerHTML = '<div class="relative w-full h-full">' + hero + '</div>';
   document.getElementById('detailPrice').textContent = Rp(p.price);
 
-  // Tutup langsung pakai reference objek, bukan id
-  document.getElementById('detailCartBtn').onclick = function() {
-    addCart(p);
-    go('cart');
+  document.getElementById('detailBuyBtn').onclick = function() {
+    openCO();
   };
 
-  // Parse deskripsi
-  var desc = p.description || 'Tidak ada deskripsi.';
-  var lines = desc.split('\n').filter(function(l) { return l.trim(); });
-  var paras = [], lists = [];
-  lines.forEach(function(l) {
-    var t = l.trim();
-    if (/^[-•*]/.test(t)) lists.push(t.replace(/^[-•*]\s*/, ''));
-    else if (/^\d+[.)]/.test(t)) lists.push(t.replace(/^\d+[.)]\s*/, ''));
-    else paras.push(t);
-  });
-
-  var body = '<p class="text-xs text-faint uppercase tracking-widest font-medium mb-2">' + escHtml(p.category || 'Umum') + '</p>'
-    + '<h1 class="text-2xl md:text-4xl font-bold tracking-tight leading-tight mb-2">' + escHtml(p.name) + '</h1>'
-    + '<p class="text-xl font-bold mb-8">' + Rp(p.price) + '</p>';
-
-  if (paras.length) {
-    body += '<div class="mb-8"><p class="text-xs text-faint uppercase tracking-widest font-medium mb-3">Tentang Produk</p>'
-      + '<div class="text-sm text-muted leading-relaxed space-y-3">' + paras.map(function(t) { return '<p>' + escHtml(t) + '</p>'; }).join('') + '</div></div>';
-  }
-
-  if (lists.length) {
-    body += '<div class="mb-8"><p class="text-xs text-faint uppercase tracking-widest font-medium mb-3">Yang Anda Dapatkan</p>'
-      + '<ul class="space-y-2">' + lists.map(function(t) {
-        return '<li class="flex items-start gap-2.5 text-sm text-muted"><svg class="w-4 h-4 text-ok mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>' + escHtml(t) + '</li>';
-      }).join('') + '</ul></div>';
-  }
-
-  body += '<div class="border-t border-line pt-8">'
+  var body = '<p class="text-xs text-faint uppercase tracking-widest font-medium mb-2">' + escH(p.category || 'Umum') + '</p>'
+    + '<h1 class="text-2xl md:text-4xl font-bold tracking-tight leading-tight mb-2">' + escH(p.name) + '</h1>'
+    + '<p class="text-xl font-bold mb-8">' + Rp(p.price) + '</p>'
+    + '<div class="mb-8">' + parseDesc(p.description) + '</div>'
+    + '<div class="border-t border-line pt-8">'
     + '<p class="text-xs text-faint uppercase tracking-widest font-medium mb-3">Cara Mendapatkan</p>'
     + '<div class="flex items-start gap-3 text-sm text-muted"><span class="bg-ink text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</span><span>Pesan dan lakukan pembayaran</span></div>'
     + '<div class="flex items-start gap-3 text-sm text-muted mt-3"><span class="bg-ink text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</span><span>Kirim bukti bayar via WhatsApp</span></div>'
@@ -328,86 +358,24 @@ function openDetail(i) {
   go('detail');
 }
 
-// ==================== KERANJANG ====================
-function addCart(prodObj) {
-  var existing = cart.find(function(x) { return x.uid === prodObj.name; });
-  if (existing) {
-    existing.qty++;
-  } else {
-    cart.push({
-      uid: prodObj.name,  // pakai nama sebagai identifier unik di keranjang
-      name: prodObj.name,
-      price: prodObj.price,
-      img: (prodObj.images && prodObj.images[0]) || '',
-      qty: 1
-    });
-  }
-  localStorage.setItem('ck', JSON.stringify(cart));
-  updBadge();
-  toast('Ditambahkan');
-}
-
-function updQty(uid, d) {
-  var item = cart.find(function(x) { return x.uid === uid; });
-  if (!item) return;
-  item.qty += d;
-  if (item.qty <= 0) cart = cart.filter(function(x) { return x.uid !== uid; });
-  localStorage.setItem('ck', JSON.stringify(cart));
-  renderCart();
-  updBadge();
-}
-
-function updBadge() {
-  var n = cart.reduce(function(s, i) { return s + i.qty; }, 0);
-  var b = document.getElementById('badge');
-  if (n > 0) { b.textContent = n; b.style.display = 'flex'; }
-  else { b.style.display = 'none'; }
-}
-
-function renderCart() {
-  var l = document.getElementById('cartList');
-  var n = document.getElementById('cartNone');
-  var f = document.getElementById('cartFoot');
-
-  if (!cart.length) { l.innerHTML = ''; n.classList.remove('hidden'); f.style.display = 'none'; return; }
-  n.classList.add('hidden');
-  f.style.display = '';
-
-  var t = 0;
-  l.innerHTML = cart.map(function(item) {
-    t += item.price * item.qty;
-    return '<div class="flex gap-3 py-4 items-center fade">'
-      + '<div class="w-14 h-14 rounded-lg overflow-hidden bg-pale flex-shrink-0">' + (item.img ? '<img src="' + item.img + '" class="w-full h-full object-cover">' : '') + '</div>'
-      + '<div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">' + escHtml(item.name) + '</p><p class="text-xs text-muted">' + Rp(item.price) + '</p></div>'
-      + '<div class="flex items-center gap-2 text-sm">'
-      + '<button onclick="updQty(\'' + item.uid.replace(/'/g, "\\'") + '\',-1)" class="w-7 h-7 rounded border border-line flex items-center justify-center hover:bg-pale transition text-xs">−</button>'
-      + '<span class="w-4 text-center font-medium">' + item.qty + '</span>'
-      + '<button onclick="updQty(\'' + item.uid.replace(/'/g, "\\'") + '\',1)" class="w-7 h-7 rounded border border-line flex items-center justify-center hover:bg-pale transition text-xs">+</button>'
-      + '</div></div>';
-  }).join('');
-  document.getElementById('cartTotal').textContent = Rp(t);
-}
-
-// ==================== CHECKOUT ====================
+/* ==================== CHECKOUT (1 PRODUK) ==================== */
 function openCO() {
-  if (!cart.length) return;
-  var t = 0;
-  document.getElementById('coSum').innerHTML = cart.map(function(i) {
-    var s = i.price * i.qty; t += s;
-    return '<div class="flex justify-between text-muted"><span class="truncate mr-3">' + escHtml(i.name) + ' ×' + i.qty + '</span><span>' + Rp(s) + '</span></div>';
-  }).join('');
-  document.getElementById('coTotal').textContent = Rp(t);
+  if (!curProd) { toast('Produk tidak ditemukan'); return; }
+  document.getElementById('coSum').innerHTML =
+    '<div class="flex justify-between text-muted"><span class="truncate mr-3">' + escH(curProd.name) + '</span><span>' + Rp(curProd.price) + '</span></div>';
+  document.getElementById('coTotal').textContent = Rp(curProd.price);
   document.getElementById('mCO').style.display = '';
 }
+
 function closeCO() { document.getElementById('mCO').style.display = 'none'; }
 
 async function doOrder(e) {
   e.preventDefault();
-  var f = e.target, btn = document.getElementById('btnOrder');
+  var f = e.target;
+  var btn = document.getElementById('btnOrder');
   btn.disabled = true; btn.textContent = 'Memproses...';
 
   var oid = 'TKU-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-  var total = cart.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
   var payload = {
     action: 'new_order',
     order_id: oid,
@@ -415,34 +383,54 @@ async function doOrder(e) {
     customer_phone: f.phone.value.trim(),
     customer_email: f.email.value.trim(),
     payment_method: f.pay.value,
-    items: cart.map(function(c) { return c.name + '(' + c.qty + ')'; }).join(', '),
-    total: total
+    items: curProd.name,
+    total: curProd.price
   };
 
   try {
-    await fetch(URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    await fetch(URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
     showOK(oid, payload);
-    cart = [];
-    localStorage.setItem('ck', '[]');
-    updBadge();
     closeCO();
     f.reset();
-  } catch (err) { toast('Gagal, coba lagi'); }
+  } catch (err) {
+    toast('Gagal, coba lagi');
+  }
   btn.disabled = false; btn.textContent = 'Buat Pesanan';
 }
 
+/* ==================== SUKSES ==================== */
 function showOK(id, d) {
   document.getElementById('okId').textContent = id;
-  var t = 'Halo, konfirmasi pembayaran:\n\nKode: ' + id + '\nNama: ' + d.customer_name + '\nProduk: ' + d.items + '\nTotal: ' + Rp(d.total) + '\nBayar via: ' + d.payment_method + '\nEmail: ' + d.customer_email + '\n\nSudah transfer, terima kasih.';
+  var t = 'Halo, konfirmasi pembayaran:\n\n'
+    + 'Kode: ' + id + '\n'
+    + 'Nama: ' + d.customer_name + '\n'
+    + 'Produk: ' + d.items + '\n'
+    + 'Total: ' + Rp(d.total) + '\n'
+    + 'Bayar via: ' + d.payment_method + '\n'
+    + 'Email: ' + d.customer_email + '\n\n'
+    + 'Sudah transfer, terima kasih.';
   document.getElementById('okWa').onclick = function() {
     if (!WA) { toast('Nomor WA belum diatur di Settings'); return; }
-    window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(t), '_blank');
+    var a = document.createElement('a');
+    a.href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(t);
+    a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click();
+    setTimeout(function() { document.body.removeChild(a); }, 200);
   };
   document.getElementById('mOK').style.display = '';
 }
-function closeOK() { document.getElementById('mOK').style.display = ''; go('store'); }
 
-// ==================== LACAK ====================
+function closeOK() {
+  document.getElementById('mOK').style.display = 'none';
+  go('store');
+}
+
+/* ==================== LACAK ==================== */
 async function doTrack() {
   var code = document.getElementById('trackIn').value.trim().toUpperCase();
   var out = document.getElementById('trackOut');
@@ -453,16 +441,26 @@ async function doTrack() {
     var j = await r.json();
     if (j.status !== 'success') { out.innerHTML = '<p class="text-xs text-no text-center py-6">Gagal memuat data</p>'; return; }
     var o = j.data.find(function(x) { return (x.OrderID || '').toUpperCase() === code; });
-    if (!o) { out.innerHTML = '<p class="text-xs text-no text-center py-6">Tidak ditemukan</p>'; return; }
+    if (!o) { out.innerHTML = '<p class="text-xs text-no text-center py-6">Pesanan tidak ditemukan</p>'; return; }
     var s = o.Status || 'Pending';
-    var sc = s === 'Pending' ? 'text-amber-600 bg-amber-50' : s === 'Sent' || s === 'Paid' ? 'text-ok bg-emerald-50' : 'text-no bg-red-50';
+    var sc = s === 'Pending' ? 'text-amber-600 bg-amber-50' : s === 'Sent' || s === 'Paid' ? 'text-ok bg-emerald-50' : s === 'Rejected' ? 'text-no bg-red-50' : 'text-muted bg-pale';
     var sl = s === 'Pending' ? 'Menunggu Pembayaran' : s === 'Sent' || s === 'Paid' ? 'Link Terkirim' : s === 'Rejected' ? 'Ditolak' : s;
-    var sd = s === 'Pending' ? 'Kirim bukti bayar via WhatsApp.' : s === 'Sent' || s === 'Paid' ? 'Cek email Anda untuk link download.' : s === 'Rejected' ? 'Hubungi admin.' : '';
-    out.innerHTML = '<div class="border border-line rounded-lg p-5 fade"><div class="flex justify-between items-start mb-4"><span class="font-mono font-bold text-sm">' + escHtml(o.OrderID) + '</span><span class="text-xs font-medium px-2 py-0.5 rounded ' + sc + '">' + sl + '</span></div><div class="space-y-1.5 text-sm"><p class="text-muted">Nama: <span class="text-ink font-medium">' + escHtml(o.CustomerName || o.CostumerName || '-') + '</span></p><p class="text-muted">Produk: <span class="text-ink font-medium">' + escHtml(o.Items || '-') + '</span></p><p class="font-bold">' + Rp(o.Total) + '</p></div><p class="text-xs text-muted mt-4 bg-pale rounded-lg p-3">' + sd + '</p></div>';
-  } catch (e) { out.innerHTML = '<p class="text-xs text-no text-center py-6">Error</p>'; }
+    var sd = s === 'Pending' ? 'Kirim bukti bayar via WhatsApp agar pesanan segera diproses.' : s === 'Sent' || s === 'Paid' ? 'Cek email Anda untuk link download produk.' : s === 'Rejected' ? 'Hubungi admin untuk informasi lebih lanjut.' : '';
+    out.innerHTML = '<div class="border border-line rounded-lg p-5 fade">'
+      + '<div class="flex justify-between items-start mb-4">'
+      + '<span class="font-mono font-bold text-sm">' + escH(o.OrderID) + '</span>'
+      + '<span class="text-xs font-medium px-2 py-0.5 rounded ' + sc + '">' + sl + '</span></div>'
+      + '<div class="space-y-1.5 text-sm">'
+      + '<p class="text-muted">Nama: <span class="text-ink font-medium">' + escH(o.CustomerName || o.CostumerName || '-') + '</span></p>'
+      + '<p class="text-muted">Produk: <span class="text-ink font-medium">' + escH(o.Items || '-') + '</span></p>'
+      + '<p class="font-bold">' + Rp(o.Total) + '</p></div>'
+      + '<p class="text-xs text-muted mt-4 bg-pale rounded-lg p-3">' + sd + '</p></div>';
+  } catch (e) {
+    out.innerHTML = '<p class="text-xs text-no text-center py-6">Error koneksi</p>';
+  }
 }
 
-// ==================== TOAST ====================
+/* ==================== TOAST ==================== */
 function toast(m) {
   var t = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = m;
@@ -471,8 +469,7 @@ function toast(m) {
   t._t = setTimeout(function() { t.classList.remove('on'); }, 2000);
 }
 
-// ==================== START ====================
-updBadge();
+/* ==================== START ==================== */
 init();
 </script>
 </body>
