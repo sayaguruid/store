@@ -516,7 +516,11 @@ function doGen(){
     var ps=j.data||[];
     return apiGet('get_settings').then(function(r){return r.json()}).then(function(j){
       var wa=(j.status==='success'&&j.data&&j.data.wa_number)?j.data.wa_number:'';
-      var code='/**\n * products.js — Data produk & konfigurasi\n */\n\nvar STORE_DATA = {\n  wa_number: '+JSON.stringify(wa)+',\n  api_url: '+JSON.stringify(API)+',\n  products: '+JSON.stringify(ps,null,2)+'\n};\n';
+      var safeProds=ps.map(function(p){
+  var copy={id:p.id,name:p.name,price:p.price,images:p.images,category:p.category,video:p.video,description:p.description};
+  return copy;
+});
+var code='/**\n * products.js — Data produk & konfigurasi\n */\n\nvar STORE_DATA = {\n  wa_number: '+JSON.stringify(wa)+',\n  api_url: '+JSON.stringify(API)+',\n  products: '+JSON.stringify(safeProds,null,2)+'\n};\n';
       document.getElementById('genCode').value=code;document.getElementById('genOut').classList.remove('hidden');toast(ps.length+' produk di-generate');btn.disabled=false;btn.textContent='Generate Kode';
     });
   }).catch(function(e){toast('Error');btn.disabled=false;btn.textContent='Generate Kode'});
