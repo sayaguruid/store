@@ -26,9 +26,18 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['DM Sans','system-ui','sans-se
 .rich-li{font-size:14px;color:#6b7280;line-height:1.75;padding:3px 0;display:flex;align-items:flex-start;gap:10px}
 .rich-ul .rich-li::before{content:'\2022';color:#059669;font-weight:700;flex-shrink:0;margin-top:2px;font-size:16px}
 .rich-ol{counter-reset:rli}
-.rich-ol .rich-li::before{content:counter(rli) '.';counter-increment:rli;font-weight:600;color:#6b7280;flex-shrink:0}
+.rich-ol .rich-li::before{content:counter(rli) '.';counter-increment:rli;font-weight:600;color:#6b7280;flex-shrink-0}
 .rich-hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0}
 .rich-spacer{height:24px}
+.copy-btn{transition:all .15s}
+.copy-btn:active{transform:scale(0.95)}
+.pay-card{border:2px solid #e5e7eb;border-radius:12px;padding:14px;cursor:pointer;transition:all .15s}
+.pay-card:hover{border-color:#d1d5db}
+.pay-card.sel{border-color:#111827;background:#f9fafb}
+.ew-card{border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px}
+.ew-card:hover{border-color:#d1d5db}
+.ew-card.sel{border-color:#111827;background:#f9fafb}
+.num-row{display:flex;align-items:center;justify-content:space-between;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;margin-top:8px}
 </style>
 </head>
 <body class="bg-white text-ink font-sans antialiased">
@@ -37,6 +46,7 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['DM Sans','system-ui','sans-se
 var API=(typeof STORE_DATA!=='undefined'&&STORE_DATA.api_url)?STORE_DATA.api_url:'';
 var WA=(typeof STORE_DATA!=='undefined'&&STORE_DATA.wa_number)?STORE_DATA.wa_number:'';
 var P=(typeof STORE_DATA!=='undefined'&&STORE_DATA.products)?STORE_DATA.products:[];
+var PAY=(typeof STORE_DATA!=='undefined'&&STORE_DATA.payment)?STORE_DATA.payment:{};
 </script>
 
 <nav class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-line">
@@ -51,7 +61,7 @@ var P=(typeof STORE_DATA!=='undefined'&&STORE_DATA.products)?STORE_DATA.products
   <!-- STORE -->
   <div id="vp-store" class="vp on">
     <div id="errBox" class="hidden bg-red-50 border border-red-200 text-red-600 text-sm p-4 rounded-lg mt-6">
-      <b>Data produk tidak ditemukan.</b> Pastikan file <code class="bg-red-100 px-1 rounded">products.js</code> sudah diupload dengan variabel <code class="bg-red-100 px-1 rounded">STORE_DATA</code>.
+      <b>Data produk tidak ditemukan.</b> Pastikan file <code class="bg-red-100 px-1 rounded">products.js</code> sudah diupload.
     </div>
     <div class="pt-16 pb-10 text-center">
       <h1 class="text-3xl md:text-5xl font-bold tracking-tight leading-tight">Produk Digital</h1>
@@ -60,9 +70,6 @@ var P=(typeof STORE_DATA!=='undefined'&&STORE_DATA.products)?STORE_DATA.products
     <div id="filterBar" class="flex gap-4 justify-center pb-8 border-b border-line text-xs flex-wrap"></div>
     <div id="prodGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 py-10"></div>
     <div id="emptyBox" class="hidden text-center py-20 text-faint text-sm">Belum ada produk.</div>
-    <footer class="py-10 border-t border-line text-center">
-      <a href="admin.html" class="text-[11px] text-faint hover:text-muted transition">Admin</a>
-    </footer>
   </div>
 
   <!-- DETAIL -->
@@ -98,23 +105,120 @@ var P=(typeof STORE_DATA!=='undefined'&&STORE_DATA.products)?STORE_DATA.products
 <!-- CHECKOUT MODAL -->
 <div id="mCO" class="fixed inset-0 z-50 flex items-end md:items-center justify-center" style="display:none">
   <div class="absolute inset-0 bg-black/30" onclick="hideM('mCO')"></div>
-  <div class="relative bg-white w-full md:w-[400px] md:rounded-xl rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
-    <button onclick="hideM('mCO')" class="absolute top-4 right-4 text-faint hover:text-ink"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
-    <h2 class="text-lg font-bold mb-1">Checkout</h2>
-    <p class="text-xs text-muted mb-5">Link produk dikirim ke email setelah dikonfirmasi.</p>
-    <form id="fCO" onsubmit="doOrder(event)" class="space-y-4">
+  <div class="relative bg-white w-full md:w-[420px] md:rounded-xl rounded-t-2xl max-h-[92vh] overflow-y-auto">
+    <div class="sticky top-0 z-10 bg-white border-b border-line px-6 py-4 flex items-center justify-between">
+      <h2 class="text-base font-bold">Checkout</h2>
+      <button onclick="hideM('mCO')" class="text-faint hover:text-ink"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <form id="fCO" onsubmit="doOrder(event)" class="p-6 space-y-4">
       <div><label class="text-xs text-muted block mb-1">Nama <span class="text-no">*</span></label><input name="name" required class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-ink transition"></div>
       <div><label class="text-xs text-muted block mb-1">WhatsApp <span class="text-no">*</span></label><input name="phone" required class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-ink transition"></div>
       <div><label class="text-xs text-muted block mb-1">Email <span class="text-no">*</span></label><input name="email" type="email" required class="w-full p-3 border border-line rounded-lg text-sm focus:outline-none focus:border-ink transition"><p class="text-[10px] text-faint mt-1">Link produk dikirim ke sini</p></div>
+
+      <!-- PAYMENT METHOD -->
       <div>
-        <label class="text-xs text-muted block mb-2">Pembayaran</label>
-        <div class="grid grid-cols-2 gap-2">
-          <label class="cursor-pointer"><input type="radio" name="pay" value="QRIS" class="hidden peer" checked><div class="p-2.5 border border-line rounded-lg text-center text-xs font-medium peer-checked:border-ink peer-checked:bg-pale transition">QRIS</div></label>
-          <label class="cursor-pointer"><input type="radio" name="pay" value="Transfer Bank" class="hidden peer"><div class="p-2.5 border border-line rounded-lg text-center text-xs font-medium peer-checked:border-ink peer-checked:bg-pale transition">Transfer Bank</div></label>
-          <label class="cursor-pointer"><input type="radio" name="pay" value="E-Wallet" class="hidden peer"><div class="p-2.5 border border-line rounded-lg text-center text-xs font-medium peer-checked:border-ink peer-checked:bg-pale transition">E-Wallet</div></label>
-          <label class="cursor-pointer"><input type="radio" name="pay" value="Lainnya" class="hidden peer"><div class="p-2.5 border border-line rounded-lg text-center text-xs font-medium peer-checked:border-ink peer-checked:bg-pale transition">Lainnya</div></label>
+        <label class="text-xs text-muted block mb-2">Metode Pembayaran <span class="text-no">*</span></label>
+        <input type="hidden" name="pay" id="payVal" value="Bank BSI">
+        <div class="grid grid-cols-3 gap-2">
+          <div onclick="setPay('bank')" class="pay-card sel text-center" data-pc="bank">
+            <div class="w-8 h-8 rounded-lg mx-auto mb-1.5 flex items-center justify-center" style="background:#00A650"><span class="text-white text-[10px] font-bold">BSI</span></div>
+            <span class="text-[11px] font-medium">Transfer Bank</span>
+          </div>
+          <div onclick="setPay('ewallet')" class="pay-card text-center" data-pc="ewallet">
+            <div class="w-8 h-8 rounded-lg mx-auto mb-1.5 flex items-center justify-center bg-blue-50"><svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3"/></svg></div>
+            <span class="text-[11px] font-medium">E-Wallet</span>
+          </div>
+          <div onclick="setPay('qris')" class="pay-card text-center" data-pc="qris">
+            <div class="w-8 h-8 rounded-lg mx-auto mb-1.5 flex items-center justify-center" style="background:#2D2D6E">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z"/></svg>
+            </div>
+            <span class="text-[11px] font-medium">QRIS</span>
+          </div>
+        </div>
+
+        <!-- BANK BSI DETAIL -->
+        <div id="payBank" class="mt-3">
+          <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#f0fdf4;border:1px solid #bbf7d0">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#00A650"><span class="text-white text-xs font-bold">BSI</span></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold text-ink">Bank BSI</p>
+              <p class="text-[10px] text-muted">Transfer Manual</p>
+            </div>
+          </div>
+          <div class="num-row">
+            <div>
+              <p class="text-[10px] text-faint">Nomor Rekening</p>
+              <p class="text-sm font-mono font-bold tracking-wide" id="bsiNum">-</p>
+            </div>
+            <button type="button" onclick="copyTxt('bsiNum',this)" class="copy-btn text-[10px] font-semibold px-3 py-1.5 rounded-md bg-white border border-line text-muted hover:text-ink hover:bg-pale transition flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/></svg>
+              Copy
+            </button>
+          </div>
+          <p class="text-[10px] text-muted mt-2">a.n. <span id="bsiName">-</span></p>
+        </div>
+
+        <!-- E-WALLET DETAIL -->
+        <div id="payEW" class="mt-3 hidden space-y-2">
+          <div onclick="setEW('dana')" class="ew-card sel" data-ew="dana">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#108EE9"><span class="text-white text-[10px] font-bold">DANA</span></div>
+            <div class="flex-1 min-w-0"><p class="text-xs font-semibold">Dana</p></div>
+            <svg class="w-4 h-4 text-ok ew-chk" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          </div>
+          <div id="danaDetail">
+            <div class="num-row">
+              <div><p class="text-[10px] text-faint">Nomor Dana</p><p class="text-sm font-mono font-bold tracking-wide" id="danaNum">-</p></div>
+              <button type="button" onclick="copyTxt('danaNum',this)" class="copy-btn text-[10px] font-semibold px-3 py-1.5 rounded-md bg-white border border-line text-muted hover:text-ink hover:bg-pale transition flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/></svg>Copy
+              </button>
+            </div>
+          </div>
+
+          <div onclick="setEW('linkaja')" class="ew-card" data-ew="linkaja">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#E3263A"><span class="text-white text-[9px] font-bold">LinkAja</span></div>
+            <div class="flex-1 min-w-0"><p class="text-xs font-semibold">LinkAja</p></div>
+            <svg class="w-4 h-4 text-ok ew-chk" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          </div>
+          <div id="linkajaDetail" class="hidden">
+            <div class="num-row">
+              <div><p class="text-[10px] text-faint">Nomor LinkAja</p><p class="text-sm font-mono font-bold tracking-wide" id="linkajaNum">-</p></div>
+              <button type="button" onclick="copyTxt('linkajaNum',this)" class="copy-btn text-[10px] font-semibold px-3 py-1.5 rounded-md bg-white border border-line text-muted hover:text-ink hover:bg-pale transition flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/></svg>Copy
+              </button>
+            </div>
+          </div>
+
+          <div onclick="setEW('shopeepay')" class="ew-card" data-ew="shopeepay">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#EE4D2D"><span class="text-white text-[9px] font-bold">SPay</span></div>
+            <div class="flex-1 min-w-0"><p class="text-xs font-semibold">ShopeePay</p></div>
+            <svg class="w-4 h-4 text-ok ew-chk" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          </div>
+          <div id="shopeepayDetail" class="hidden">
+            <div class="num-row">
+              <div><p class="text-[10px] text-faint">Nomor ShopeePay</p><p class="text-sm font-mono font-bold tracking-wide" id="shopeepayNum">-</p></div>
+              <button type="button" onclick="copyTxt('shopeepayNum',this)" class="copy-btn text-[10px] font-semibold px-3 py-1.5 rounded-md bg-white border border-line text-muted hover:text-ink hover:bg-pale transition flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/></svg>Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QRIS DETAIL -->
+        <div id="payQris" class="mt-3 hidden">
+          <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#eef2ff;border:1px solid #c7d2fe">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#2D2D6E">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/></svg>
+            </div>
+            <div><p class="text-xs font-semibold text-ink">QRIS</p><p class="text-[10px] text-muted">Scan dengan aplikasi pembayaran</p></div>
+          </div>
+          <div class="mt-3 flex justify-center">
+            <img id="qrisImg" src="" alt="QRIS" class="w-56 h-56 rounded-xl border border-line object-contain bg-white" onerror="this.style.display='none';document.getElementById('qrisErr').classList.remove('hidden')">
+          </div>
+          <p id="qrisErr" class="hidden text-[10px] text-faint text-center mt-2">Gambar QRIS belum diatur</p>
         </div>
       </div>
+
+      <!-- SUMMARY -->
       <div class="bg-pale rounded-lg p-4 border border-line">
         <p class="text-[10px] text-faint uppercase tracking-widest font-medium mb-2">Ringkasan</p>
         <div id="coSum" class="space-y-1 text-sm"></div>
@@ -132,7 +236,13 @@ var P=(typeof STORE_DATA!=='undefined'&&STORE_DATA.products)?STORE_DATA.products
     <div class="w-12 h-12 bg-ok rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></div>
     <h3 class="font-bold text-lg mb-1">Pesanan Dibuat</h3>
     <p class="text-xs text-muted mb-4">Kirim bukti pembayaran via WhatsApp</p>
-    <div class="border border-line border-dashed rounded-lg p-3 mb-5"><span id="okId" class="text-xl font-mono font-bold tracking-widest"></span></div>
+    <div class="border border-line border-dashed rounded-lg p-3 mb-5 flex items-center justify-between">
+      <span id="okId" class="text-xl font-mono font-bold tracking-widest"></span>
+      <button type="button" onclick="copyTxt('okId',this)" class="copy-btn text-[10px] font-semibold px-3 py-1.5 rounded-md border border-line text-muted hover:text-ink hover:bg-pale transition flex items-center gap-1 flex-shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/></svg>
+        Copy
+      </button>
+    </div>
     <button id="okWa" class="w-full bg-ok text-white py-3 rounded-lg text-sm font-semibold hover:bg-emerald-700 transition mb-2">Kirim Bukti Bayar</button>
     <button onclick="hideM('mOK');nav('store')" class="text-xs text-faint hover:text-muted transition">Tutup</button>
   </div>
@@ -141,7 +251,7 @@ var P=(typeof STORE_DATA!=='undefined'&&STORE_DATA.products)?STORE_DATA.products
 <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-5 py-2.5 rounded-lg z-[999] whitespace-nowrap"><span id="toastTxt"></span></div>
 
 <script>
-var FP=[], curCat='Semua', curProd=null;
+var FP=[], curCat='Semua', curProd=null, selPay='bank', selEW='dana';
 var Rp=function(n){return 'Rp '+Number(n||0).toLocaleString('id-ID')};
 function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
 
@@ -156,6 +266,13 @@ function nav(v){
 /* === INIT === */
 function init(){
   if(!P.length){document.getElementById('errBox').classList.remove('hidden');return}
+  /* Isi data pembayaran */
+  if(PAY.bsi_number)document.getElementById('bsiNum').textContent=PAY.bsi_number;
+  if(PAY.bsi_name)document.getElementById('bsiName').textContent=PAY.bsi_name;
+  if(PAY.dana_number)document.getElementById('danaNum').textContent=PAY.dana_number;
+  if(PAY.linkaja_number)document.getElementById('linkajaNum').textContent=PAY.linkaja_number;
+  if(PAY.shopeepay_number)document.getElementById('shopeepayNum').textContent=PAY.shopeepay_number;
+  if(PAY.qris_image)document.getElementById('qrisImg').src=PAY.qris_image;
   buildFilter();renderGrid();
 }
 
@@ -187,21 +304,7 @@ function renderGrid(){
 /* === PARSE DESKRIPSI === */
 function parseDesc(raw){
   if(!raw||!raw.trim())return '<p class="text-sm text-muted">Tidak ada deskripsi.</p>';
-  try{
-    var b=JSON.parse(raw);
-    if(Array.isArray(b)&&b.length){
-      var h='';
-      b.forEach(function(x){
-        if(x.type==='h2')h+='<h2 class="rich-h2">'+esc(x.content)+'</h2>';
-        else if(x.type==='p'){var t=esc(x.content||'');if(t)h+='<p class="rich-p">'+t.replace(/\n/g,'<br>')+'</p>'}
-        else if(x.type==='ul'&&x.items&&x.items.length)h+='<ul class="rich-ul">'+x.items.map(function(it){return '<li class="rich-li">'+esc(it)+'</li>'}).join('')+'</ul>';
-        else if(x.type==='ol'&&x.items&&x.items.length)h+='<ol class="rich-ol">'+x.items.map(function(it){return '<li class="rich-li">'+esc(it)+'</li>'}).join('')+'</ol>';
-        else if(x.type==='divider')h+='<hr class="rich-hr">';
-        else if(x.type==='spacer')h+='<div class="rich-spacer"></div>';
-      });
-      return h||'<p class="text-sm text-muted">Tidak ada deskripsi.</p>';
-    }
-  }catch(e){}
+  try{var b=JSON.parse(raw);if(Array.isArray(b)&&b.length){var h='';b.forEach(function(x){if(x.type==='h2')h+='<h2 class="rich-h2">'+esc(x.content)+'</h2>';else if(x.type==='p'){var t=esc(x.content||'');if(t)h+='<p class="rich-p">'+t.replace(/\n/g,'<br>')+'</p>'}else if(x.type==='ul'&&x.items&&x.items.length)h+='<ul class="rich-ul">'+x.items.map(function(it){return '<li class="rich-li">'+esc(it)+'</li>'}).join('')+'</ul>';else if(x.type==='ol'&&x.items&&x.items.length)h+='<ol class="rich-ol">'+x.items.map(function(it){return '<li class="rich-li">'+esc(it)+'</li>'}).join('')+'</ol>';else if(x.type==='divider')h+='<hr class="rich-hr">';else if(x.type==='spacer')h+='<div class="rich-spacer"></div>'});return h||'<p class="text-sm text-muted">Tidak ada deskripsi.</p>'}}catch(e){}
   var lines=raw.split('\n').filter(function(l){return l.trim()}),paras=[],lists=[];
   lines.forEach(function(l){var t=l.trim();if(/^[-•*]\s/.test(t))lists.push(t.replace(/^[-•*]\s+/,''));else if(/^\d+[.)]\s/.test(t))lists.push(t.replace(/^\d+[.)]\s+/,''));else paras.push(t)});
   var h='';
@@ -218,9 +321,7 @@ function openDetail(i){
     hero='<div class="swipe w-full h-full">';
     imgs.forEach(function(s){hero+='<div><img src="'+s+'" class="w-full h-full object-cover" alt="'+esc(p.name)+'"></div>'});
     if(vid){var m=vid.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]{11})/);if(m&&m[1])hero+='<div class="bg-gray-900"><iframe class="w-full h-full" src="https://www.youtube.com/embed/'+m[1]+'" frameborder="0" allowfullscreen loading="lazy"></iframe></div>'}
-    hero+='</div>';
-    var dc=imgs.length+(vid?1:0);
-    if(dc>1)hero+='<div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">'+Array(dc).fill('<span class="w-1.5 h-1.5 bg-white/60 rounded-full"></span>').join('')+'</div>';
+    hero+='</div>';var dc=imgs.length+(vid?1:0);if(dc>1)hero+='<div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">'+Array(dc).fill('<span class="w-1.5 h-1.5 bg-white/60 rounded-full"></span>').join('')+'</div>';
   }else{hero='<div class="w-full h-full flex items-center justify-center text-faint text-sm">Tidak ada media</div>'}
   document.getElementById('dHero').innerHTML='<div class="relative w-full h-full">'+hero+'</div>';
   document.getElementById('dPrice').textContent=Rp(p.price);
@@ -239,11 +340,43 @@ function openDetail(i){
   nav('detail');
 }
 
+/* === PAYMENT SELECTION === */
+function setPay(type){
+  selPay=type;
+  document.querySelectorAll('[data-pc]').forEach(function(c){c.classList.toggle('sel',c.dataset.pc===type)});
+  document.getElementById('payBank').classList.toggle('hidden',type!=='bank');
+  document.getElementById('payEW').classList.toggle('hidden',type!=='ewallet');
+  document.getElementById('payQris').classList.toggle('hidden',type!=='qris');
+  if(type==='bank')document.getElementById('payVal').value='Bank BSI';
+  else if(type==='qris')document.getElementById('payVal').value='QRIS';
+}
+
+function setEW(type){
+  selEW=type;
+  document.querySelectorAll('[data-ew]').forEach(function(c){c.classList.toggle('sel',c.dataset.ew===type)});
+  document.getElementById('danaDetail').classList.toggle('hidden',type!=='dana');
+  document.getElementById('linkajaDetail').classList.toggle('hidden',type!=='linkaja');
+  document.getElementById('shopeepayDetail').classList.toggle('hidden',type!=='shopeepay');
+  document.getElementById('payVal').value=type==='dana'?'Dana':type==='linkaja'?'LinkAja':'ShopeePay';
+}
+
+/* === COPY === */
+function copyTxt(id,btn){
+  var el=document.getElementById(id);
+  var text=el.textContent||el.innerText;
+  navigator.clipboard.writeText(text).then(function(){
+    var orig=btn.innerHTML;btn.innerHTML='<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg> Copied';
+    btn.classList.add('text-ok');btn.classList.remove('text-muted');
+    setTimeout(function(){btn.innerHTML=orig;btn.classList.remove('text-ok');btn.classList.add('text-muted')},1500);
+  }).catch(function(){document.execCommand('copy');toast('Copied')});
+}
+
 /* === CHECKOUT === */
 function openCO(){
   if(!curProd){toast('Produk tidak ditemukan');return}
   document.getElementById('coSum').innerHTML='<div class="flex justify-between text-muted"><span class="truncate mr-3">'+esc(curProd.name)+'</span><span>'+Rp(curProd.price)+'</span></div>';
   document.getElementById('coTotal').textContent=Rp(curProd.price);
+  setPay('bank');setEW('dana');
   showM('mCO');
 }
 function hideM(id){document.getElementById(id).style.display='none'}
@@ -254,11 +387,8 @@ async function doOrder(e){
   btn.disabled=true;btn.textContent='Memproses...';
   var oid='TKU-'+Math.random().toString(36).substr(2,6).toUpperCase();
   var payload={action:'new_order',order_id:oid,customer_name:f.name.value.trim(),customer_phone:f.phone.value.trim(),customer_email:f.email.value.trim(),payment_method:f.pay.value,items:curProd.name,total:curProd.price};
-  try{
-    await fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    showOK(oid,payload);hideM('mCO');f.reset();
-  }catch(err){toast('Gagal, coba lagi')}
-  btn.disabled=false;btn.textContent='Buat Pesanan';
+  try{await fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});showOK(oid,payload);hideM('mCO');f.reset()}
+  catch(err){toast('Gagal, coba lagi')}btn.disabled=false;btn.textContent='Buat Pesanan';
 }
 
 function showOK(id,d){
@@ -274,18 +404,14 @@ function showOK(id,d){
 /* === LACAK === */
 async function doTrack(){
   var code=document.getElementById('trkIn').value.trim().toUpperCase(),out=document.getElementById('trkOut');
-  if(!code)return;
-  out.innerHTML='<p class="text-xs text-faint text-center py-6">Mencari...</p>';
-  try{
-    var r=await fetch(API+'?action=getOrders&_t='+Date.now()),j=await r.json();
-    if(j.status!=='success'){out.innerHTML='<p class="text-xs text-no text-center py-6">Gagal memuat data</p>';return}
-    var o=j.data.find(function(x){return(x.OrderID||'').toUpperCase()===code});
-    if(!o){out.innerHTML='<p class="text-xs text-no text-center py-6">Pesanan tidak ditemukan</p>';return}
-    var s=o.Status||'Pending';
-    var sc=s==='Pending'?'text-amber-600 bg-amber-50':s==='Sent'||s==='Paid'?'text-ok bg-emerald-50':s==='Rejected'?'text-no bg-red-50':'text-muted bg-pale';
-    var sl=s==='Pending'?'Menunggu Pembayaran':s==='Sent'||s==='Paid'?'Link Terkirim':s==='Rejected'?'Ditolak':s;
-    var sd=s==='Pending'?'Kirim bukti bayar via WhatsApp agar pesanan segera diproses.':s==='Sent'||s==='Paid'?'Cek email Anda untuk link download produk.':s==='Rejected'?'Hubungi admin untuk informasi lebih lanjut.':'';
-    out.innerHTML='<div class="border border-line rounded-lg p-5 fade"><div class="flex justify-between items-start mb-4"><span class="font-mono font-bold text-sm">'+esc(o.OrderID)+'</span><span class="text-xs font-medium px-2 py-0.5 rounded '+sc+'">'+sl+'</span></div><div class="space-y-1.5 text-sm"><p class="text-muted">Nama: <span class="text-ink font-medium">'+esc(o.CustomerName||o.CostumerName||'-')+'</span></p><p class="text-muted">Produk: <span class="text-ink font-medium">'+esc(o.Items||'-')+'</span></p><p class="font-bold">'+Rp(o.Total)+'</p></div><p class="text-xs text-muted mt-4 bg-pale rounded-lg p-3">'+sd+'</p></div>';
+  if(!code)return;out.innerHTML='<p class="text-xs text-faint text-center py-6">Mencari...</p>';
+  try{var r=await fetch(API+'?action=getOrders&_t='+Date.now()),j=await r.json();if(j.status!=='success'){out.innerHTML='<p class="text-xs text-no text-center py-6">Gagal memuat data</p>';return}
+  var o=j.data.find(function(x){return(x.OrderID||'').toUpperCase()===code});
+  if(!o){out.innerHTML='<p class="text-xs text-no text-center py-6">Pesanan tidak ditemukan</p>';return}
+  var s=o.Status||'Pending',sc=s==='Pending'?'text-amber-600 bg-amber-50':s==='Sent'||s==='Paid'?'text-ok bg-emerald-50':s==='Rejected'?'text-no bg-red-50':'text-muted bg-pale';
+  var sl=s==='Pending'?'Menunggu Pembayaran':s==='Sent'||s==='Paid'?'Link Terkirim':s==='Rejected'?'Ditolak':s;
+  var sd=s==='Pending'?'Kirim bukti bayar via WhatsApp agar pesanan segera diproses.':s==='Sent'||s==='Paid'?'Cek email Anda untuk link download produk.':s==='Rejected'?'Hubungi admin untuk informasi lebih lanjut.':'';
+  out.innerHTML='<div class="border border-line rounded-lg p-5 fade"><div class="flex justify-between items-start mb-4"><span class="font-mono font-bold text-sm">'+esc(o.OrderID)+'</span><span class="text-xs font-medium px-2 py-0.5 rounded '+sc+'">'+sl+'</span></div><div class="space-y-1.5 text-sm"><p class="text-muted">Nama: <span class="text-ink font-medium">'+esc(o.CustomerName||o.CostumerName||'-')+'</span></p><p class="text-muted">Produk: <span class="text-ink font-medium">'+esc(o.Items||'-')+'</span></p><p class="font-bold">'+Rp(o.Total)+'</p></div><p class="text-xs text-muted mt-4 bg-pale rounded-lg p-3">'+sd+'</p></div>';
   }catch(e){out.innerHTML='<p class="text-xs text-no text-center py-6">Error koneksi</p>'}
 }
 
