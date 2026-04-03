@@ -1,49 +1,47 @@
 /**
- * products.js — Data produk & konfigurasi toko
- *
- * UPDATE:
- * 1. Buka Admin → tab Export → Generate Kode
- * 2. Copy seluruh output
- * 3. Paste di sini, replace semua
- * 4. Upload ulang ke hosting
+ * products.js — Data produk & konfigurasi
  */
 
 var STORE_DATA = {
-  wa_number: "6281234567890",
+  wa_number: "6285793715450",
   api_url: "https://script.google.com/macros/s/AKfycbzl7y3umo8ZOWMa6-vusamSwJ9-2l_rmvZ4gwU8pMpx6t2I9X7DYYylrKW_PVHGDvV3QA/exec",
   products: [
-    {
-      "id": "PRD-A1B2C3",
-      "name": "Template CV Premium",
-      "price": 49000,
-      "images": [
-        "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=600"
-      ],
-      "category": "Template",
-      "video": "",
-      "description": "[{\"type\":\"h2\",\"content\":\"Template CV Profesional\"},{\"type\":\"p\",\"content\":\"Desain modern dan bersih, cocok untuk berbagai industri. File editable di Google Slides dan Canva.\"},{\"type\":\"h2\",\"content\":\"Yang Anda Dapatkan\"},{\"type\":\"ul\",\"items\":[\"1x File Google Slides\",\"1x File Canva\",\"1x File PDF preview\",\"Panduan penggunaan\",\"Free update selamanya\"]},{\"type\":\"divider\"},{\"type\":\"p\",\"content\":\"Format file akan dikirimkan via email setelah pembayaran dikonfirmasi admin.\"}]"
-    },
-    {
-      "id": "PRD-D4E5F6",
-      "name": "Ebook Digital Marketing 2024",
-      "price": 79000,
-      "images": [
-        "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600"
-      ],
-      "category": "Ebook",
-      "video": "",
-      "description": "[{\"type\":\"h2\",\"content\":\"Panduan Lengkap Digital Marketing\"},{\"type\":\"p\",\"content\":\"Ebook 120+ halaman yang membahas strategi digital marketing dari dasar hingga advanced. Ditulis berdasarkan pengalaman nyata menangani klien.\"},{\"type\":\"h2\",\"content\":\"Materi yang Dicover\"},{\"type\":\"ol\",\"items\":[\"SEO Fundamentals\",\"Social Media Strategy\",\"Google Ads & Meta Ads\",\"Content Marketing\",\"Email Marketing\",\"Analytics & Data Driven\"]},{\"type\":\"spacer\"},{\"type\":\"p\",\"content\":\"Cocok untuk pemula yang baru memulai bisnis online maupun yang sudah berpengalaman.\"}]"
-    },
-    {
-      "id": "PRD-G7H8I9",
-      "name": "Preset Lightroom Paket Lengkap",
-      "price": 35000,
-      "images": [
-        "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600"
-      ],
-      "category": "Preset",
-      "video": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "description": "[{\"type\":\"h2\",\"content\":\"20+ Preset Lightroom Mobile & Desktop\"},{\"type\":\"p\",\"content\":\"Koleksi preset Lightroom untuk foto portrait, landscape, street photography, dan flatlay. Hasil edit konsisten dan profesional.\"},{\"type\":\"h2\",\"content\":\"Isi Paket\"},{\"type\":\"ul\",\"items\":[\"20 preset format DNG\",\"20 preset format XMP\",\"File instalasi PDF\",\"Video tutorial 10 menit\"]},{\"type\":\"divider\"},{\"type\":\"p\",\"content\":\"Kompatibel dengan Lightroom Mobile (Android & iOS) dan Lightroom Classic/CC versi terbaru.\"}]"
-    }
-  ]
+  {
+    "id": "1",
+    "name": "Buku",
+    "price": 20000,
+    "images": [
+      "https://i.imgur.com/PuxYp29.jpeg",
+      "https://i.imgur.com/r8Qmbos.jpeg"
+    ],
+    "category": "Aksesoris",
+    "video": "https://www.youtube.com/shorts/liABSEjpq8w",
+    "digital_link": "https://drive.google.com/file/d/1BkW5eECHcn6Pis25h4VwaJAqjk5UGcNE/view?usp=drive_link",
+    "description": "Buku"
+  },
+  {
+    "id": "2",
+    "name": "Pensil",
+    "price": 15000,
+    "images": [
+      "https://i.imgur.com/r8Qmbos.jpeg"
+    ],
+    "category": "Dokumen",
+    "video": "",
+    "digital_link": "https://docs.google.com/spreadsheets/d/1GqgPJ41zu6TePp_ky_WmR2YNoIG6MUORXmMBCGAPJNs/edit?gid=0#gid=0",
+    "description": "pensil"
+  },
+  {
+    "id": "PRD-7W6X3I",
+    "name": "Yayasan",
+    "price": 350000,
+    "images": [
+      "https://i.imgur.com/o5E5RmY.jpeg"
+    ],
+    "category": "Aksesoris",
+    "video": "https://www.youtube.com/watch?v=fpWUQxwZ6IA&pp=ugUEEgJpZA%3D%3D",
+    "digital_link": "https://docs.google.com/spreadsheets/d/1GqgPJ41zu6TePp_ky_WmR2YNoIG6MUORXmMBCGAPJNs/edit?gid=1479542039#gid=1479542039",
+    "description": "[{\"type\":\"h2\",\"content\":\"Tentang Produk\"},{\"type\":\"p\",\"content\":\"asdf lasdf asdf asdf asd'f \\nasdf;a\\nsdf as'df ads;f lasdf; 'asldf ';adsf \"}]"
+  }
+]
 };
