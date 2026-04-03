@@ -7,19 +7,6 @@ var STORE_DATA = {
   api_url: "https://script.google.com/macros/s/AKfycbzl7y3umo8ZOWMa6-vusamSwJ9-2l_rmvZ4gwU8pMpx6t2I9X7DYYylrKW_PVHGDvV3QA/exec",
   products: [
   {
-    "id": "1",
-    "name": "Buku",
-    "price": 20000,
-    "images": [
-      "https://i.imgur.com/PuxYp29.jpeg",
-      "https://i.imgur.com/r8Qmbos.jpeg"
-    ],
-    "category": "Aksesoris",
-    "video": "https://www.youtube.com/shorts/liABSEjpq8w",
-    "digital_link": "https://drive.google.com/file/d/1BkW5eECHcn6Pis25h4VwaJAqjk5UGcNE/view?usp=drive_link",
-    "description": "Buku"
-  },
-  {
     "id": "2",
     "name": "Pensil",
     "price": 15000,
