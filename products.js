@@ -9,15 +9,15 @@
  */
 
 var STORE_DATA = {
-  wa_number: "6281234567890",
+  wa_number: "6285793715450",
   api_url: "https://script.google.com/macros/s/AKfycbzl7y3umo8ZOWMa6-vusamSwJ9-2l_rmvZ4gwU8pMpx6t2I9X7DYYylrKW_PVHGDvV3QA/exec",
   payment: {
-    bsi_name: "TokoKu Official",
+    bsi_name: "Usman Firdaus",
     bsi_number: "7123456789",
-    dana_number: "081234567890",
-    linkaja_number: "081234567890",
-    shopeepay_number: "081234567890",
-    qris_image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/300px-QR_code_for_mobile_English_Wikipedia.svg.png"
+    dana_number: "085793715450",
+    linkaja_number: "085793715450",
+    shopeepay_number: "085793715450",
+    qris_image: "https://i.imgur.com/7OwEBaj.png"
   },
   products: [
     {
